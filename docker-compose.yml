@@ -1,0 +1,25 @@
+
+# A docker-compose must always start by the version tag.
+# We use "3" because it's the last version at this time.
+version: "3"
+
+# You should know that docker-composes works with services.
+# 1 service = 1 container.
+# For example, a service maybe, a server, a client, a database...
+# We use the keyword 'services' to start to create services.
+services:
+
+  # The SOTA cartpole service that connects to the aiq.ailab.wsu.edu/ vhost.
+  # We use a custom service name for each service variant so we can have multiple versions
+  # running at the same time, just with slightly modified docker-compose files.
+  uccs-sota-cartpole-0.6.2:
+    # We define an image name because we use the same image for all variants, they just get a
+    # different volume source directory for the configs.
+    # image: aiq-sail-on/sota-cartpole
+    # The volume we mount determines which config files will be available to the services.
+    volumes:
+      - ./uccs-mockn-cartpole.config:/code/uccs-mockn-cartpole1.config:rw
+    build:
+      context: ./
+      dockerfile: dockerfile
+    command: python -u TA2.py --config=uccs-mockn-cartpole1.config --printout --logfile=log.txt
