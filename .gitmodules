@@ -1,0 +1,3 @@
+[submodule "vast"]
+	path = vast
+	url = https://github.com/Vastlab/vast
