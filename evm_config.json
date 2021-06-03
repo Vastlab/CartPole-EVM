@@ -1,0 +1,6 @@
+{
+    "cover_threshold": 0.8,
+    "distance_multiplier": 0.55,
+    "tail_size": 40000,
+    "distance_metric" : "cosine"
+}
