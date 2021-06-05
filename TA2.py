@@ -213,7 +213,8 @@ class TA2Agent(TA2Logic):
 
 #        print("Novelty Probability:", novelty_probability)
 #        print("Total Steps:", self.totalSteps)
-        self.log.debug('Training Episode End: performance={}, NovelProb={},steps={}, WC={},'.format(performance,self.UCCS.problist,self.totalSteps,novelty_probability))        
+        self.log.debug('Training Episode End: performance={}, NovelProb={},steps={}, WC={},'.format(performance,self.UCCS.problist,self.totalSteps,novelty_probability))
+        self.log.info('Training Episode End: steps={}, WC={},'.format(self.totalSteps,novelty_probability))                
         self.totalSteps = 0
         return novelty_probability, novelty_threshold, novelty, novelty_characterization
 
@@ -388,6 +389,7 @@ class TA2Agent(TA2Logic):
 #        print("Novelty Probability:", novelty_probability)
 #        print("Total Steps:", self.totalSteps)
         self.log.debug('Testing Episode End: performance={}, NovelProbs={},steps={}, WC={},'.format(performance,self.UCCS.problist,self.totalSteps,novelty_probability))
+        self.log.info('Training Episode End: steps={}, WC={},'.format(self.totalSteps,novelty_probability))                        
         self.totalSteps = 0
         # if(self.UCCS.given):
         #      fname = 'Given-History-{}-{}-{}.csv'.format(self.UCCS.trial,self.UCCS.episode,uuid.uuid4().hex)
