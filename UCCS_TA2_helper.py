@@ -167,7 +167,7 @@ class  UCCSTA2():
         
     
     def process_instance(self,actual_state):
-        pertub = (self.cnt > 5) and (self.maxprob < .5)
+        pertub = (self.cnt > 100) and (self.maxprob < .5)
         action, expected_state = self.takeOneStep(actual_state, self.env_prediction,pertub)        
 
         data_val = self.expected_backone
