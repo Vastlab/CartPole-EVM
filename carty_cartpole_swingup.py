@@ -223,6 +223,7 @@ class CartPoleSwingUp(gym.Env):
     def get_best_action(self, observation):
         current_state = observation
 
+        observation = self.set_state(current_state)
         observation, reward, done, info = self.step(0)
         observation_left, reward, done, info = self.step(0)
         left_future = self.cartpole_cost_numpy(observation_left, cost_sigma=0.25)

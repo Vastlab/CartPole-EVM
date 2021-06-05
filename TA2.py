@@ -93,7 +93,8 @@ class TA2Agent(TA2Logic):
 
 
         # Define evm and pilco objects as well as state data list
-        self.totalSteps=0        
+        self.totalSteps=0
+        self.lasttime=0                
         self.UCCS = UCCSTA2()
         # Self states, always previous 4 steps
 
@@ -146,22 +147,25 @@ class TA2Agent(TA2Logic):
             A dictionary of your label prediction of the format {'action': label}.  This is
                 strictly enforced and the incorrect format will result in an exception being thrown.
         """
-#        self.log.debug('Training Instance: feature_vector={}  feature_label={}'.format(
+
+
+        
+#        self.log.debug('Training Instance: feature_vector={}  feature_label={}.format(
 #            feature_vector, feature_label))
+
 
         actual_state = [feature_vector['cart_position'], feature_vector['cart_veloctiy'],
                     feature_vector['pole_angle'], feature_vector['pole_angular_velocity']]
 
         action = self.UCCS.process_instance(actual_state)
-        if(self.UCCS.episode == 0 and  self.UCCS.cnt <10):
-            self.log.debug(self.UCCS.debugstring)
+#        if(self.UCCS.episode == 0 and  self.UCCS.cnt <20):
+#            self.log.debug(self.UCCS.debugstring)
         self.totalSteps += 1
         # format the return of novelty and actions
         if action == 1:
             label_prediction = {'action': 'right'}
         else:
             label_prediction = {'action': 'left'}
-
 
         return label_prediction
 
@@ -307,15 +311,19 @@ class TA2Agent(TA2Logic):
             A dictionary of your label prediction of the format {'action': label}.  This is
                 strictly enforced and the incorrect format will result in an exception being thrown.
         """
-#        self.log.debug('Testing Instance: feature_vector={}, novelty_indicator={}'.format(
-#            feature_vector, novelty_indicator))
+
+        if(self.UCCS.cnt < 2):
+            self.log.debug('Testing Instance: feature_vector={}, novelty_indicator={}'.format(feature_vector, novelty_indicator))
 
         actual_state = [feature_vector['cart_position'], feature_vector['cart_veloctiy'],
                     feature_vector['pole_angle'], feature_vector['pole_angular_velocity']]
 
         action = self.UCCS.process_instance(actual_state)
-        if(self.UCCS.episode == 0 and  self.UCCS.cnt > 101 and  self.UCCS.cnt <106):
-            self.log.debug(self.UCCS.debugstring)
+            
+#        if(self.UCCS.episode == 0 and  self.UCCS.cnt > 101 and  self.UCCS.cnt <106):#
+#           self.log.debug(self.UCCS.debugstring)
+#        if(self.UCCS.episode == 0 and  self.UCCS.cnt <120):
+        self.log.debug(self.UCCS.debugstring)            
         self.totalSteps += 1
 
         # format the return of novelty and actions

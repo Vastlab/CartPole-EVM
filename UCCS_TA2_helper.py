@@ -1,4 +1,4 @@
-1#UCCS TA 2 helper 
+#UCCS TA 2 helper 
 import pdb
 import numpy as np
 import gym
@@ -65,6 +65,7 @@ class  UCCSTA2():
 #        self.mean_train=  0.10057711735799268
 #       self.stdev_train = 0.00016        
         self.problist = []
+        self.maxprob = 0     
         self.expected_backone = np.zeros(4)
 #        self.expected_backtwo = np.zeros(4)                
         self.episode=0
@@ -104,15 +105,22 @@ class  UCCSTA2():
 
     def reset(self,episode):
         self.problist = []
+        self.maxprob = 0     
         self.cnt = 0        
         self.episode=episode
         self.worldchanged=0                
         
     # Take one step look ahead, return predicted environment and step
     # env should be a carty_cartpole_swingup environment
-    def takeOneStep(self,state_given, env):
+    def takeOneStep(self,state_given, env, pertub=False):
         observation = env.set_state(state_given)
         action, _ = env.get_best_action(observation)
+        #if doing well pertub it so we can better chance of detecting novelties
+        if(pertub and abs(state_given[0]) < .2 and  abs(state_given[1]) < .25) and abs(state_given[2]) < .05 and abs(state_given[3]) < .25 :
+            if(action ==1): action = 0
+            else: action = 1
+            print("Flipped Action, state=",state_given)
+
         expected_state, _, _, _ = env.step(action)
         return action, expected_state
 
@@ -153,7 +161,8 @@ class  UCCSTA2():
         
     
     def process_instance(self,actual_state):
-        action, expected_state = self.takeOneStep(actual_state, self.env_prediction)        
+        pertub = (self.cnt > 5) and (self.maxprob < .5)
+        action, expected_state = self.takeOneStep(actual_state, self.env_prediction,pertub)        
 
         data_val = self.expected_backone
         self.expected_backone = expected_state
@@ -169,7 +178,8 @@ class  UCCSTA2():
         data_tensor = torch.from_numpy(np.asarray(current))
         probs = self.evm_inference_obj(data_tensor)
         probability = self.prob_scale*(probs.numpy()[0])-1  #probably of novelty so knowns have prob 0,  unknown prob 1.
-        self.debugstring='Instance: cnt={},actual_state={}, next={}, dataval={}, current/diff={},NovelProb={}'.format(self.cnt,actual_state, expected_state, data_val,current,probability)         
+        self.maxprob = max(probability,self.maxprob)
+        self.debugstring ='Instance: cnt={},actual_state={}, next={},  current/diff={},NovelProb={}'.format(self.cnt,actual_state, expected_state, current,probability)         
 #        if(probability >0): pdb.set_trace()
         self.problist.append(probability)
         

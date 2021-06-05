@@ -50,7 +50,7 @@ number_of_classes = 2
 n_cpu = int(os.cpu_count()*0.8)
 
 
-SEED = 0
+SEED = 1
 os.environ['PYTHONHASHSEED']=str(SEED)
 os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
 random.seed(SEED)
@@ -62,7 +62,6 @@ np.random.seed(SEED)
 env_to_use = 'CartPole-v0'
 print('ENV TO USE', env_to_use)
 env = gym.make(env_to_use)
-
 
 noveltyStdMn = []
 state_and_dec = []
@@ -81,10 +80,10 @@ for k in range(nruns):
     for i in range(200):
         # Predict steps
       action = UCCS.process_instance(actual_state)            
+      if(UCCS.cnt < 25): print(UCCS.debugstring)        
       actual_state, r, done, _ = env.step(action)          # Take the predicted best action to get next actual state
-      if(UCCS.cnt < 5): print(UCCS.debugstring)        
       if done:
-        if(UCCS.cnt < 199): print("!!Steps only:", numSteps)
+        if(UCCS.cnt < 199): print("!!!!!!!!!!!!!!!!!!!!!Steps only:", numSteps)
 
         print (UCCS.problist)
         mu = np.mean(UCCS.problist[3:])
@@ -93,9 +92,10 @@ for k in range(nruns):
         kl = UCCS.kullback_leibler( mu, sigma,UCCS.mean_train, UCCS.stdev_train)
         KLlist.append(float(kl))
         UCCS.episode += 1
-        print("KL/WC",kl,            UCCS.world_change_prob())
+        print("Steps, KL/WC",UCCS.cnt,kl, UCCS.world_change_prob())
         UCCS.cnt=0
-        UCCS.problist=[]       
+        UCCS.problist=[]
+        UCCS.reset(0)
 
         break
 
