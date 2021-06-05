@@ -125,7 +125,7 @@ class  UCCSTA2():
               and (abs(state_given[3]) < .1))):
             if(action ==1): action = 0
             else: action = 1
-            print("Flipped Action, state=",state_given)
+            #print("Flipped Action, state=",state_given)
 
         expected_state, _, _, _ = env.step(action)
         return action, expected_state
