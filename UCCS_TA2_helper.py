@@ -65,10 +65,15 @@ class  UCCSTA2():
 #        self.mean_train=  0.10057711735799268
 #       self.stdev_train = 0.00016        
         self.problist = []
-        self.maxprob = 0     
+        self.maxprob = 0
+        self.meanprob = 0             
         self.expected_backone = np.zeros(4)
 #        self.expected_backtwo = np.zeros(4)                
         self.episode=0
+        self.trial=0        
+        self.given=False
+        self.statelist=[]
+        self.debug=False
         self.debugstring=""
         # Create prediction environment
         gym.envs.registration.register(id='CartPoleSwingUp-v0',
@@ -105,7 +110,10 @@ class  UCCSTA2():
 
     def reset(self,episode):
         self.problist = []
-        self.maxprob = 0     
+        self.statelist=[]
+        self.given=False
+        self.maxprob = 0
+        self.meanprob = 0             
         self.cnt = 0        
         self.episode=episode
         self.worldchanged=0                
@@ -167,29 +175,40 @@ class  UCCSTA2():
         
     
     def process_instance(self,actual_state):
-        pertub = (self.cnt > 100) and (self.maxprob < .5)
+#        pertub = (self.cnt > 100) and (self.maxprob < .5)
+        pertub = False
         action, expected_state = self.takeOneStep(actual_state, self.env_prediction,pertub)        
 
         data_val = self.expected_backone
         self.expected_backone = expected_state
         self.cnt += 1        
         if(self.cnt <3):    #skip prob estiamtes for the first ones as we need history to get prediction
-          self.debugstring='Early Instance: actual_state={}, next={}, dataval={}, '.format(actual_state, expected_state, data_val)         
+          if(self.debug):
+            self.debugstring='Early Instance: actual_state={}, next={}, dataval={}, '.format(actual_state, expected_state, data_val)         
           return action
-        
-        difference_from_expected = data_val - actual_state  #next 4 are the difference between expected and actual state after one step, i.e.
-        current = difference_from_expected        
-#        for i in difference_from_expected:
-#            current.append(i)
-        data_tensor = torch.from_numpy(np.asarray(current))
-        probs = self.evm_inference_obj(data_tensor)
-        probability = self.prob_scale*(probs.numpy()[0])-1  #probably of novelty so knowns have prob 0,  unknown prob 1.
-        self.maxprob = max(probability,self.maxprob)
-        self.debugstring ='Instance: cnt={},actual_state={}, next={},  current/diff={},NovelProb={}'.format(self.cnt,actual_state, expected_state, current,probability)         
-#        if(probability >0): pdb.set_trace()
-        self.problist.append(probability)
-        
-
+        else:
+          difference_from_expected = data_val - actual_state  #next 4 are the difference between expected and actual state after one step, i.e.
+          current = difference_from_expected
+          #if diff is almost floatingpoint zero no point in computing EVM probbility, which will be 0 (tested to 1e-15)
+          if(max(abs(current)) < 1e-15): probability=0
+          elif(self.meanprob > .6):
+            #hack for speed, no point recomputing if we already have a high mean probability as world changed detected with this much probability so cannot go back             
+            probability = self.meanprob 
+          else:
+            #compute EVM proabilties
+            data_tensor = torch.from_numpy(np.asarray(current))
+            probs = self.evm_inference_obj(data_tensor)
+            probability = self.prob_scale*(probs.numpy()[0])-1  #probably of novelty so knowns have prob 0,  unknown prob 1.
+            self.maxprob = max(probability,self.maxprob)
+            if(self.cnt > 6):
+              self.meanprob = np.mean(self.problist)          
+#              print(self.meanprob, self.problist)
+          
+          if(self.debug):
+            self.debugstring ='Instance: cnt={},actual_state={}, next={},  current/diff={},NovelProb={}'.format(self.cnt,actual_state, expected_state, current,probability)
+#          elif(self.given): self.statelist.append([action,actual_state,expected_state,current])
+          
+          self.problist.append(probability)
         return action
         
 

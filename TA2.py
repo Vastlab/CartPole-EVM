@@ -35,7 +35,8 @@ import torch
 import numpy as np
 import UCCS_TA2_helper
 from  UCCS_TA2_helper import UCCSTA2
-
+import uuid
+import csv
 
 
 
@@ -96,6 +97,7 @@ class TA2Agent(TA2Logic):
         self.totalSteps=0
         self.lasttime=0                
         self.UCCS = UCCSTA2()
+        self.UCCS.debug=options.debug
         # Self states, always previous 4 steps
 
         return
@@ -264,6 +266,7 @@ class TA2Agent(TA2Logic):
         """
         self.log.info('Trial Start: #{}  novelty_desc: {}'.format(trial_number,
                                                                   str(novelty_description)))
+        self.UCCS.trial=trial_number
         if len(self.possible_answers) == 0:
             self.possible_answers.append(dict({'action': 'left'}))
         return
@@ -312,8 +315,11 @@ class TA2Agent(TA2Logic):
                 strictly enforced and the incorrect format will result in an exception being thrown.
         """
 
-        if(self.UCCS.cnt < 2):
-            self.log.debug('Testing Instance: feature_vector={}, novelty_indicator={}'.format(feature_vector, novelty_indicator))
+        if(self.UCCS.cnt < 1):
+            self.log.info('Testing Instance: feature_vector={}, novelty_indicator={}'.format(feature_vector, novelty_indicator))
+            if(novelty_indicator == True):
+                self.UCCS.given = True
+            else: self.UCCS.given = False
 
         actual_state = [feature_vector['cart_position'], feature_vector['cart_veloctiy'],
                     feature_vector['pole_angle'], feature_vector['pole_angular_velocity']]
@@ -383,6 +389,14 @@ class TA2Agent(TA2Logic):
 #        print("Total Steps:", self.totalSteps)
         self.log.info('Testing Episode End: performance={}, NovelProbs={},steps={}, WC={},'.format(performance,self.UCCS.problist,self.totalSteps,novelty_probability))
         self.totalSteps = 0
+        # if(self.UCCS.given):
+        #      fname = 'Given-History-{}-{}-{}.csv'.format(self.UCCS.trial,self.UCCS.episode,uuid.uuid4().hex)
+        #      with open(fname, "w", newline="") as f:
+        #         writer = csv.writer(f)
+        #         writer.writerows(self.UCCS.statelist)
+        #         f.close()
+        #         self.UCCS.given=False
+        
         return novelty_probability, novelty_threshold, novelty, novelty_characterization
 
     def testing_end(self):
