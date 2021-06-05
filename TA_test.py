@@ -80,7 +80,23 @@ for k in range(nruns):
     for i in range(200):
         # Predict steps
       action = UCCS.process_instance(actual_state)            
-      if(UCCS.cnt < 25): print(UCCS.debugstring)        
+      if(UCCS.cnt < 25): print(UCCS.debugstring)
+      if (UCCS.cnt == 5 and k==2):
+        env.modify("masspole",.11)
+        print("Modified mass pole")
+      elif (UCCS.cnt == 5 and k==3):
+        env.modify("length",.51)
+        env.modify("masspole",.1)
+        print("Modified Lenth"              )
+      elif (UCCS.cnt == 5 and k==4):
+        env.modify("length",.5)
+        env.modify("gravity",9.81)
+        print("Modified gravity"              )
+      elif (UCCS.cnt == 5 and k==6):
+        env.modify("length",.5)
+        env.modify("gravity",9.8)
+        print("Reutrn to normal")
+
       actual_state, r, done, _ = env.step(action)          # Take the predicted best action to get next actual state
       if done:
         if(UCCS.cnt < 199): print("!!!!!!!!!!!!!!!!!!!!!Steps only:", numSteps)
